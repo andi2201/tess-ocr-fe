@@ -79,6 +79,7 @@ export default {
         this.reconnectDisabled = false
       }
 
+
       this.socket.onmessage = ({ data }) => {
         const serverMessage = JSON.parse(data)
 
