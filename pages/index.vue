@@ -17,13 +17,17 @@
         </section>
       </b-upload>
     </b-field>
-    <b-field>
+    <b-field label="Progress">
       <div class="content has-text-centered is-3">
         <b-progress :value="progressValue" size="is-medium" show-value>
           {{ progressStatus }}
         </b-progress>
       </div>
     </b-field>
+  <b-field label="Message">
+            <b-input v-model="text" type="textarea"></b-input>
+        </b-field>
+
 
     <!-- <div class="tags">
       <span
@@ -51,6 +55,7 @@ export default {
       reconnectDisabled: false,
       progressStatus: '',
       progressValue: 0,
+      text: ''
     }
   },
   mounted() {
@@ -82,9 +87,10 @@ export default {
 
       this.socket.onmessage = ({ data }) => {
         const serverMessage = JSON.parse(data)
+        console.log(serverMessage)
 
         if (serverMessage.text) {
-          console.log('yaaaayyy', serverMessage.text)
+          this.text = serverMessage.text
         } else {
           this.progressStatus = serverMessage.status
           this.progressValue = serverMessage.progress * 100
