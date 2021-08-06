@@ -76,7 +76,7 @@ export default {
 
       // prod
       this.socket = new WebSocket(
-        'ws://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
+        'wss://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8081'
       )
 
       this.socket.onopen = () => {
