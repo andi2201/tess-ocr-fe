@@ -12,7 +12,8 @@
     "@nuxtjs/axios": "^5.13.6",
     "core-js": "^3.15.1",
     "nuxt": "^2.15.7",
-    "nuxt-buefy": "^0.4.8"
+    "nuxt-buefy": "^0.4.8",
+    "tesseract.js": "^2.1.5"
   },
   "devDependencies": {
     "eslint-config-prettier": "^8.3.0",
