@@ -1,12 +1,7 @@
 <template>
   <section>
-    <b-field v-if="socket.readyState !== 1">
-      <b-button :disabled="reconnectDisabled" @click="initSocket">
-        Connect {{ socket.readyState }}</b-button
-      >
-    </b-field>
-    <b-field v-else>
-      <b-upload v-model="dropFiles" drag-drop @input="inputFile">
+    <b-field>
+      <b-upload v-model="files" multiple drag-drop @input="inputFile">
         <section class="section">
           <div class="content has-text-centered">
             <p>
@@ -17,16 +12,18 @@
         </section>
       </b-upload>
     </b-field>
-    <b-field label="Progress">
-      <div class="content has-text-centered is-3">
-        <b-progress :value="progressValue" size="is-medium" show-value>
-          {{ progressStatus }}
-        </b-progress>
-      </div>
-    </b-field>
-    <b-field label="Message">
-      <b-input v-model="text" type="textarea"></b-input>
-    </b-field>
+    <div v-for="job in jobs" :key="job.fileName">
+      <b-field label="Progress">
+        <div class="content has-text-centered is-3">
+          <b-progress :value="job.progressValue" size="is-medium" show-value>
+            {{ job.progressStatus }}
+          </b-progress>
+        </div>
+      </b-field>
+      <b-field label="Message">
+        {{ job.result ? job.result : '' }}
+      </b-field>
+    </div>
 
     <!-- <div class="tags">
       <span
@@ -46,65 +43,94 @@
 </template>
 
 <script>
+// import Tesseract from 'tesseract.js'
+import { createWorker } from 'tesseract.js'
+
 export default {
   data() {
     return {
-      dropFiles: [],
-      socket: { readyState: 3 },
-      reconnectDisabled: false,
-      progressStatus: '',
-      progressValue: 0,
-      text: '',
+      lang: null,
+      files: [],
+      jobs: [],
+      // socket: { readyState: 3 },
     }
   },
-  mounted() {
-    this.initSocket()
-  },
+  // mounted() {
+  //   this.initSocket()
+  // },
   computed: {},
   methods: {
-    inputFile(file) {
-      console.log(this.socket)
-      this.socket.send(file)
-    },
-    initSocket() {
-      this.reconnectDisabled = true
+    async inputFile(files) {
+      // console.log(this.socket)
+      // this.socket.send(file)
+      files.forEach((file) => {
+        if (!this.jobs.find((job) => job.fileName === file.name)) {
+          this.jobs.push({ fileName: file.name, file: file })
+        }
+      })
 
-      // dev
-      // this.socket = new WebSocket(
-      //   'ws://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
-      // )
+      for (const job of this.jobs) {
+        if (!job.progressValue) {
+          const worker = createWorker({
+            logger: (m) => {
+              job.progressStatus = m.status
+              job.progressValue = m.progress * 100
+              console.log(m)
+              this.jobs.splice()
+            },
+          })
 
-      // prod
-      this.socket = new WebSocket(
-        'wss://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
-      )
+          await worker.load()
+          await worker.loadLanguage(this.lang ?? 'deu')
+          await worker.initialize(this.lang ?? 'deu')
 
-      this.socket.onopen = () => {
-        this.reconnectDisabled = false
-      }
-
-      this.socket.onerror = (err) => {
-        this.reconnectDisabled = false
-      }
-
-      this.socket.onclose = () => {
-        this.reconnectDisabled = false
-      }
-
-      this.socket.onmessage = ({ data }) => {
-        const serverMessage = JSON.parse(data)
-        console.log(serverMessage)
-
-        if (serverMessage.text) {
-          this.text = serverMessage.text
-        } else {
-          this.progressStatus = serverMessage.status
-          this.progressValue = serverMessage.progress * 100
+          const {
+            data: { text },
+          } = await worker.recognize(job.file)
+          job.result = text
+          this.jobs.splice()
         }
       }
     },
+    // initSocket() {
+    //   this.reconnectDisabled = true
+
+    //   // dev
+    //   // this.socket = new WebSocket(
+    //   //   'ws://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
+    //   // )
+
+    //   // prod
+    //   this.socket = new WebSocket(
+    //     'wss://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
+    //   )
+
+    //   this.socket.onopen = () => {
+    //     this.reconnectDisabled = false
+    //   }
+
+    //   this.socket.onerror = (err) => {
+    //     this.reconnectDisabled = false
+    //   }
+
+    //   this.socket.onclose = () => {
+    //     this.reconnectDisabled = false
+    //   }
+
+    //   this.socket.onmessage = ({ data }) => {
+    //     const serverMessage = JSON.parse(data)
+    //     console.log(serverMessage)
+
+    //     if (serverMessage.text) {
+    //       this.text = serverMessage.text
+    //     } else {
+    //       this.progressStatus = serverMessage.status
+    //       this.progressValue = serverMessage.progress * 100
+    //     }
+    //   }
+    // },
     deleteDropFile(index) {
-      this.dropFiles.splice(index, 1)
+      this.files.splice(index, 1)
     },
   },
 }
