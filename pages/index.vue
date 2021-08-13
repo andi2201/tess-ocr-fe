@@ -12,38 +12,35 @@
         </section>
       </b-upload>
     </b-field>
-    <div v-for="job in jobs" :key="job.fileName">
-      <b-field label="Progress">
-        <div class="content has-text-centered is-3">
-          <b-progress :value="job.progressValue" size="is-medium" show-value>
-            {{ job.progressStatus }}
-          </b-progress>
-        </div>
-      </b-field>
-      <b-field label="Message">
-        {{ job.result ? job.result : '' }}
-      </b-field>
-    </div>
 
-    <!-- <div class="tags">
-      <span
-        v-for="(file, index) in dropFiles"
-        :key="index"
-        class="tag is-primary"
-      >
-        {{ file.name }}
-        <button
-          class="delete is-small"
-          type="button"
-          @click="deleteDropFile(index)"
-        ></button>
-      </span>
-    </div> -->
+    <div v-if="jobs.length > 0">
+      <b-table detailed detail-key="fileName" :data="jobs" striped hoverable>
+        <b-table-column field="fileName" label="File" v-slot="props">
+          {{ props.row.fileName }}
+        </b-table-column>
+
+        <b-table-column field="progressValue" label="Progress" v-slot="props">
+          <b-progress
+            :type="
+              props.row.progressStatus === 'done' ? 'is-success' : 'is-warning'
+            "
+            :value="props.row.progressValue"
+            size="is-medium"
+            show-value
+          >
+            {{ props.row.progressStatus }}
+          </b-progress>
+        </b-table-column>
+
+        <template #detail="props">
+          {{ props.row.result ? props.row.result : '' }}
+        </template>
+      </b-table>
+    </div>
   </section>
 </template>
 
 <script>
-// import Tesseract from 'tesseract.js'
 import { createWorker } from 'tesseract.js'
 
 export default {
@@ -52,21 +49,17 @@ export default {
       lang: null,
       files: [],
       jobs: [],
-      // socket: { readyState: 3 },
     }
   },
-  // mounted() {
-  //   this.initSocket()
-  // },
   computed: {},
   methods: {
     async inputFile(files) {
-      // console.log(this.socket)
-      // this.socket.send(file)
-      files.forEach((file) => {
-        if (!this.jobs.find((job) => job.fileName === file.name)) {
-          this.jobs.push({ fileName: file.name, file: file })
-        }
+      // files that are not in the jobs array:
+      const todoFiles = files.filter(
+        (file) => !this.jobs.find((job) => job.fileName === file.name)
+      )
+      todoFiles.forEach((file) => {
+        this.jobs.push({ fileName: file.name, file: file })
       })
 
       for (const job of this.jobs) {
@@ -88,6 +81,7 @@ export default {
             data: { text },
           } = await worker.recognize(job.file)
           job.result = text
+          job.progressStatus = 'done'
           this.jobs.splice()
         }
       }
