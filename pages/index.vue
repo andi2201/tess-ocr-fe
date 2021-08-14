@@ -2,21 +2,14 @@
   <div class="columns">
     <div class="column"></div>
     <div class="column is-three-fifths is-centered">
-      <div class="cent">
-        <b-upload v-model="files" multiple drag-drop @input="inputFile">
-          <section class="section">
-            <div class="content has-text-centered">
-              <p>
-                <b-icon icon="upload" size="is-large"> </b-icon>
-              </p>
-              <p>Drop your files here or click to start <strong>OCR</strong></p>
-            </div>
-          </section>
-        </b-upload>
-      </div>
-      <div>
-        <b-field label="select a language">
+      <h1 class="content has-text-centered" style="margin-top: 2em">
+        OCR in your Browser powered by
+        <a href="https://tesseract.projectnaptha.com/">tesseract.js</a>
+      </h1>
+      <div class="cent" style="margin-top: 2em; margin-bottom: 2em">
+        <b-field label="Language">
           <b-autocomplete
+            clearable
             v-model="selectedLanguage"
             placeholder="e.g. German"
             open-on-focus
@@ -26,17 +19,32 @@
           >
           </b-autocomplete>
         </b-field>
-
       </div>
-      
 
+      <div class="cent">
+        <b-upload v-model="files" multiple drag-drop @input="inputFile">
+          <section class="section">
+            <div class="content has-text-centered">
+              <p>
+                <b-icon icon="upload" size="is-large"> </b-icon>
+              </p>
+              <p>Drop your files here or click to start OCR</p>
+            </div>
+          </section>
+        </b-upload>
+      </div>
       <div v-if="jobs.length > 0">
         <b-table detailed detail-key="fileName" :data="jobs" striped hoverable>
           <b-table-column field="fileName" label="File" v-slot="props">
             {{ props.row.fileName }}
           </b-table-column>
 
-          <b-table-column field="progressValue" label="Progress" v-slot="props">
+          <b-table-column
+            width="300"
+            field="progressValue"
+            label="Progress"
+            v-slot="props"
+          >
             <b-progress
               :type="
                 props.row.progressStatus === 'done'
@@ -52,7 +60,17 @@
           </b-table-column>
 
           <template #detail="props">
-            {{ props.row.result ? props.row.result : '' }}
+            <span v-if="props.row.result">
+              <div class="has-text-right">
+                <b-tooltip label="copy text">
+                  <a @click="copyToClipboard(props.row.result)"
+                    ><b-icon icon="content-copy"></b-icon></a
+                ></b-tooltip>
+                <br />
+              </div>
+              {{ props.row.result }}
+            </span>
+            <span v-else> please wait </span>
           </template>
         </b-table>
       </div>
@@ -89,6 +107,14 @@ export default {
     },
   },
   methods: {
+    copyToClipboard(text) {
+      navigator.clipboard.writeText(text)
+      this.$buefy.toast.open({
+        duration: 2000,
+        message: `Ok, cool! 👍`,
+        position: 'is-bottom',
+      })
+    },
     languageSelected(option) {
       if (option) {
         this.selectedLanguage = option.language
@@ -106,25 +132,31 @@ export default {
 
       for (const job of this.jobs) {
         if (!job.progressValue) {
-          const worker = createWorker({
-            logger: (m) => {
-              job.progressStatus = m.status
-              job.progressValue = m.progress * 100
-              console.log(m)
-              this.jobs.splice()
-            },
-          })
+          try {
+            const worker = createWorker({
+              logger: (m) => {
+                job.progressStatus = m.status
+                job.progressValue = m.progress * 100
+                console.log(m)
+                this.jobs.splice()
+              },
+            })
 
-          await worker.load()
-          await worker.loadLanguage(this.selectedLanguageCode ?? 'eng')
-          await worker.initialize(this.selectedLanguageCode ?? 'eng')
+            await worker.load()
+            await worker.loadLanguage(this.selectedLanguageCode ?? 'eng')
+            await worker.initialize(this.selectedLanguageCode ?? 'eng')
 
-          const {
-            data: { text },
-          } = await worker.recognize(job.file)
-          job.result = text
-          job.progressStatus = 'done'
-          this.jobs.splice()
+            const {
+              data: { text },
+            } = await worker.recognize(job.file)
+            job.result = text
+            job.progressStatus = 'done'
+          } catch {
+            job.result = '🤷‍♀️'
+            job.progressStatus = 'error'
+          } finally {
+            this.jobs.splice()
+          }
         }
       }
     },
@@ -175,8 +207,6 @@ export default {
 .cent {
   display: flex;
   justify-content: center;
-  margin-top: 4em;
-  margin-bottom: 2em;
 }
 </style>
   
