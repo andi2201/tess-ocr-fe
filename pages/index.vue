@@ -34,7 +34,7 @@
         </b-upload>
       </div>
       <div v-if="jobs.length > 0">
-        <b-table detailed detail-key="fileName" :data="jobs" striped hoverable>
+        <b-table detailed detail-key="fileName" :opened-detailed="openedDetailed" :data="jobs" striped hoverable>
           <b-table-column field="fileName" label="File" v-slot="props">
             {{ props.row.fileName }}
           </b-table-column>
@@ -89,9 +89,13 @@ export default {
       selectedLanguageCode: 'eng',
       files: [],
       jobs: [],
+      openedDetailed: [],
     }
   },
   computed: {
+    // openedDetailed(){
+    //   return jobs.map((job) => job.fileName)
+    // },
     filteredDataObj() {
       return this.languages.filter((option) => {
         return (
@@ -151,6 +155,7 @@ export default {
             } = await worker.recognize(job.file)
             job.result = text
             job.progressStatus = 'done'
+            this.openedDetailed.push(job.fileName)
           } catch {
             job.result = '🤷‍♀️'
             job.progressStatus = 'error'
