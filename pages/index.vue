@@ -165,43 +165,6 @@ export default {
         }
       }
     },
-    // initSocket() {
-    //   this.reconnectDisabled = true
-
-    //   // dev
-    //   // this.socket = new WebSocket(
-    //   //   'ws://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
-    //   // )
-
-    //   // prod
-    //   this.socket = new WebSocket(
-    //     'wss://9c67b16a-f5a5-4f35-ad9e-c6b8708cd52b.pub.instances.scw.cloud:8080'
-    //   )
-
-    //   this.socket.onopen = () => {
-    //     this.reconnectDisabled = false
-    //   }
-
-    //   this.socket.onerror = (err) => {
-    //     this.reconnectDisabled = false
-    //   }
-
-    //   this.socket.onclose = () => {
-    //     this.reconnectDisabled = false
-    //   }
-
-    //   this.socket.onmessage = ({ data }) => {
-    //     const serverMessage = JSON.parse(data)
-    //     console.log(serverMessage)
-
-    //     if (serverMessage.text) {
-    //       this.text = serverMessage.text
-    //     } else {
-    //       this.progressStatus = serverMessage.status
-    //       this.progressValue = serverMessage.progress * 100
-    //     }
-    //   }
-    // },
     deleteDropFile(index) {
       this.files.splice(index, 1)
     },

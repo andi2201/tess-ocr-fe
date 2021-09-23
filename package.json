@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",
-    "core-js": "^3.15.1",
-    "nuxt": "^2.15.7",
-    "nuxt-buefy": "^0.4.8",
+    "core-js": "^3.18.0",
+    "nuxt": "^2.15.8",
+    "nuxt-buefy": "^0.4.10",
     "tesseract.js": "^2.1.5"
   },
   "devDependencies": {
     "eslint-config-prettier": "^8.3.0",
-    "prettier": "^2.3.2"
+    "prettier": "^2.4.1"
   }
 }
