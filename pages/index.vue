@@ -1,6 +1,6 @@
 <template>
   <div class="columns">
-    <a class="github-fork-ribbon left-top" href="https://github.com/andi2201/tess-ocr-fe" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+    <a class="github-fork-ribbon left-top" href="https://github.com/andi2201/tess-ocr-fe" data-ribbon="GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
     <div class="column"></div>
     <div class="column is-three-fifths is-centered">
       <h1 class="content has-text-centered" style="margin-top: 2em">
